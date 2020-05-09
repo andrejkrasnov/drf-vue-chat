@@ -133,5 +133,5 @@ bower_components
 psd
 thumb
 sketch
-
+venv
 # End of https://www.gitignore.io/api/vue,django
