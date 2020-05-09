@@ -23,8 +23,8 @@
 
 <script>
 import axios from 'axios'
-const api = 'http://127.0.0.1:8000/auth/users/'
-const apiToken = 'http://localhost:8000/auth/token/login/'
+const api = 'http://127.0.0.1:8000/auth/users/create/'
+const apiToken = 'http://localhost:8000/auth/token/create/'
 export default {
 
   data () {
@@ -51,7 +51,7 @@ export default {
         password: this.password,
         email: this.email
       })
-        .then((response) => {
+        .then(() => {
           this.signIn()
         })
         .catch((e) => {
