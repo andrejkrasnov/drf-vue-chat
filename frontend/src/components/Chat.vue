@@ -9,7 +9,9 @@
                 <div v-on:scroll.passive="arrowTarget" class="container chat-body" id="chat-body" >
                   <div id="arrowscrolldown" @click="onClickArrow">
                     <div  class="wrapper__arrow">
-                      <img  src="../assets/down-arrow.png" class="arrow" alt="">
+                      <div class="wrapper__img_arrow">
+                        <img  src="../assets/down-arrow.png" class="arrow" alt="">
+                      </div>
                     </div>
                   </div>
                     <div v-for="message in messages" :key="message.id"  class="row chat-section d-flex flex-column">
@@ -100,11 +102,11 @@ export default {
           console.log(e.response)
         })
     },
-    postMessage (event) {
+    postMessage () {
       const data = {message: this.message}
 
       axios.post(`http://localhost:8000/api/chats/${this.$route.params.uri}/messages/`, data)
-        .then((response) => {
+        .then(() => {
           this.message = ''
         })
         .catch((response) => {
@@ -158,12 +160,11 @@ export default {
 
     onMessage (event) {
       const message = JSON.parse(event.data)
-      if (message.hasOwnProperty('member')) {
+      if (Object.prototype.hasOwnProperty.call(message,'member')) {
         this.members.push(message.member)
       }
-      if (message.hasOwnProperty('message')) {
+      if (Object.prototype.hasOwnProperty.call(message,'message')) {
         this.messages.push(message)
-
       }
     },
 
@@ -176,9 +177,9 @@ export default {
     },
     arrowTarget () {
       const chatBody = this.$el.querySelector('#chat-body')
-      console.log( Math.floor(chatBody.scrollTop)+ 'текущая высота')
-      console.log(chatBody.scrollHeight - chatBody.clientHeight  + 'высота скрола')
-      if ((chatBody.scrollHeight - chatBody.clientHeight)   !== Math.floor(chatBody.scrollTop) ) {
+      console.log(Math.round(chatBody.scrollTop) + 'текущая высота')
+      console.log(chatBody.scrollHeight - chatBody.clientHeight + 'высота скрола')
+      if ((chatBody.scrollHeight - chatBody.clientHeight) !== Math.round(chatBody.scrollTop)) {
         this.$el.querySelector('#arrowscrolldown').style.display = 'flex'
       } else {
         this.$el.querySelector('#arrowscrolldown').style.display = 'none'
@@ -261,23 +262,29 @@ p{
   right: 10px;
   top: 90%;
   width: 100%;
-  
   display: none;
   justify-content: flex-end;
 }
-.wrapper__arrow:hover{
-  background-color: rgba(0, 0, 0, 0.2);
-  border: #648ba0 solid 1px;
+
+.wrapper__img_arrow{
+  background-color: #fff;
+   justify-content: center;
+   display: flex;
+  align-content: center;
+  border-radius: 50%;
 }
 .wrapper__arrow{
-  display: flex;
-  padding-top: 4px;
-  justify-content: center;
-  align-content: center;
+  background-color: #fff;
+  -webkit-box-shadow: 0 30px 60px 0 rgba(0,0,0,0.4);
+  box-shadow: 0 30px 60px 0 rgba(0,0,0,0.4);
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  
+}
+.wrapper__img_arrow:hover{
+  background-color: rgba(0, 0, 0, 0.2);
+  border: #648ba0 solid 1px;
+  cursor: pointer;
 }
 .arrow{
   width: 100%;
@@ -319,9 +326,6 @@ p{
 .subtle-blue-gradient {
   background-color: rgb(84, 186, 237);
 }
-
-
-
 .chat-section {
   margin-top: 15px;
 }
