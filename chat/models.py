@@ -36,9 +36,10 @@ class ChatSessionMessage(TrackableDateModel):
     chat_session = models.ForeignKey(
         ChatSession, related_name='messages', on_delete=models.PROTECT
     )
+    isRead = models.BooleanField(default=False)
     message = models.TextField(max_length=2000)  
     def to_json(self):
-        return {'user': deserialize_user(self.user), 'message': self.message}          
+        return {'id':self.pk,'user': deserialize_user(self.user), 'message': self.message, 'isReading': self.isRead}          
 
 class ChatSessionMember(TrackableDateModel):
 
@@ -47,4 +48,4 @@ class ChatSessionMember(TrackableDateModel):
     )
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     def to_json(self):
-        return {'member': deserialize_user(self.user)}   
+        return { 'id':self.pk, 'member': deserialize_user(self.user)}   

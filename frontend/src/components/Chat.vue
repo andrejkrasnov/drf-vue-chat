@@ -15,18 +15,18 @@
                     </div>
                   </div>
                     <div v-for="message in messages" :key="message.id"  class="row chat-section d-flex flex-column">
-                      <template v-if="username === message.user.username">
+                      <template v-if="username === message.user.username" v-on:scroll.passive="messageChatSection">
                         <div class="col-sm-7 offset-5">
                           <span class="card-text speech-bubble speech-bubble-user float-right text-white subtle-blue-gradient">
-                            {{ message.message }}
+                          {{ message.message }}
                          </span>
                         </div>
                       </template>
                       <template v-else>
                         <div class="col-sm-7">
-                          <div class=" speech-bubble speech-bubble-peer text-left ">
+                          <div :id="['Message_'+message.id]" class="anothermessage speech-bubble speech-bubble-peer text-left ">
                             <span class="nicname">{{message.user.username}}</span>
-                            <p>{{message.message}}</p>
+                            <p>{{message.message}} </p>
                           </div>
                         </div>
                       </template>
@@ -85,8 +85,11 @@ export default {
     } else {
       this.startChatSession()
     }
+    
   },
-
+  mounted() {
+    
+  },
   methods: {
     startChatSession () {
       const api = 'http://localhost:8000/api/chats/'
@@ -160,6 +163,7 @@ export default {
 
     onMessage (event) {
       const message = JSON.parse(event.data)
+      console.log(message)
       if (Object.prototype.hasOwnProperty.call(message,'member')) {
         this.members.push(message.member)
       }
@@ -177,13 +181,36 @@ export default {
     },
     arrowTarget () {
       const chatBody = this.$el.querySelector('#chat-body')
-      console.log(Math.round(chatBody.scrollTop) + 'текущая высота')
-      console.log(chatBody.scrollHeight - chatBody.clientHeight + 'высота скрола')
+      
+      
+      this.messageReading()
+      //console.log(Math.round(chatBody.scrollTop) + 'текущая высота')
+      //console.log(chatBody.scrollHeight - chatBody.clientHeight + 'высота скрола')
       if ((chatBody.scrollHeight - chatBody.clientHeight) !== Math.round(chatBody.scrollTop)) {
         this.$el.querySelector('#arrowscrolldown').style.display = 'flex'
       } else {
         this.$el.querySelector('#arrowscrolldown').style.display = 'none'
       }
+    },
+    isReading (el){
+      let coords = el.getBoundingClientRect();
+      let chatBodyHeight = document.querySelector('#chat-body').clientHeight;
+      
+      // видны верхний ИЛИ нижний край элемента
+      let topVisible = coords.top > 0 && coords.top < chatBodyHeight;
+      let bottomVisible = coords.bottom < chatBodyHeight && coords.bottom > 0;
+
+      return topVisible || bottomVisible;
+    },
+    messageReading (){
+      console.log('--------------------новое чтение-------------------')
+      for (let message of this.$el.querySelectorAll('.anothermessage')) {
+        if (this.isReading(message)) {
+          console.log(message.getAttribute('id').replace(/[^\d]/g, ''))
+          message.classList.remove('anothermessage') 
+          console.log('прочитано')
+        }
+      } 
     }
   }
 }
@@ -253,6 +280,7 @@ p{
   padding-left: 0px;
   padding-bottom: 0px;
 }
+
 .chat-header{
   border-radius: calc(.25rem - 1px) 0 0 0;
 }
