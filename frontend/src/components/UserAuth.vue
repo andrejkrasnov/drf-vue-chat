@@ -23,8 +23,8 @@
 
 <script>
 import axios from 'axios'
-const api = 'http://127.0.0.1:8000/auth/users/create/'
-const apiToken = 'http://localhost:8000/auth/token/create/'
+const api = 'http://127.0.0.1:8000/auth/users/'
+const apiToken = 'http://localhost:8000/auth/token/login/'
 export default {
 
   data () {

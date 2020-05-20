@@ -17,16 +17,22 @@
                     <div v-for="message in messages" :key="message.id"  class="row chat-section d-flex flex-column">
                       <template v-if="username === message.user.username" v-on:scroll.passive="messageChatSection">
                         <div class="col-sm-7 offset-5">
-                          <span class="card-text speech-bubble speech-bubble-user float-right text-white subtle-blue-gradient">
+                          <p class="card-text speech-bubble speech-bubble-user float-right text-white subtle-blue-gradient">
                           {{ message.message }}
+                        <span v-for="reader in message.readers" :key="reader.id">
+                          {{reader.reader.username}} читатель
                          </span>
+                         </p>
                         </div>
                       </template>
                       <template v-else>
                         <div class="col-sm-7">
-                          <div :id="['Message_'+message.id]" class="anothermessage speech-bubble speech-bubble-peer text-left ">
+                          <div :id="['Message_'+message.id]" :class="isAnotherMessage(message.readers)? '': 'anothermessage' " class=" speech-bubble speech-bubble-peer text-left" >
                             <span class="nicname">{{message.user.username}}</span>
                             <p>{{message.message}} </p>
+                          <span v-for="reader in message.readers" :key="reader.id">
+                          {{reader.reader.username }} читатель
+                         </span>
                           </div>
                         </div>
                       </template>
@@ -74,7 +80,8 @@ export default {
       messages: [],
       message: '',
       members: [],
-      isArrow: false
+      isArrow: false,
+      username: ''
     }
   },
   created () {
@@ -136,12 +143,13 @@ export default {
       const respone = await axios(api)
       this.members = respone.data.members
     },
-    fetchChatSessionHistory () {
-      this.getMembers()
-      axios.get(`http://127.0.0.1:8000/api/chats/${this.$route.params.uri}/messages/`)
-        .then((respone) => {
-          this.messages = respone.data.messages
-        })
+    async fetchChatSessionHistory () {
+      await this.getMembers()
+      const respone = await axios({
+        method: 'get',
+        url: `http://127.0.0.1:8000/api/chats/${this.$route.params.uri}/messages/`,
+      })
+      this.messages = respone.data.messages
     },
     connectToWebSocket () {
       const websocket = new WebSocket(`ws://localhost:8081/${this.$route.params.uri}/`)
@@ -184,8 +192,8 @@ export default {
       
       
       this.messageReading()
-      //console.log(Math.round(chatBody.scrollTop) + 'текущая высота')
-      //console.log(chatBody.scrollHeight - chatBody.clientHeight + 'высота скрола')
+      console.log(Math.round(chatBody.scrollTop) + 'текущая высота')
+      console.log(chatBody.scrollHeight - chatBody.clientHeight + 'высота скрола')
       if ((chatBody.scrollHeight - chatBody.clientHeight) !== Math.round(chatBody.scrollTop)) {
         this.$el.querySelector('#arrowscrolldown').style.display = 'flex'
       } else {
@@ -194,23 +202,55 @@ export default {
     },
     isReading (el){
       let coords = el.getBoundingClientRect();
-      let chatBodyHeight = document.querySelector('#chat-body').clientHeight;
-      
+      console.log(coords)
+      let chatBodyHeight = document.querySelector('#chat-body').offsetHeight;
+      console.log(chatBodyHeight)
       // видны верхний ИЛИ нижний край элемента
-      let topVisible = coords.top > 0 && coords.top < chatBodyHeight;
-      let bottomVisible = coords.bottom < chatBodyHeight && coords.bottom > 0;
+      let topVisible = coords.top > 0 && coords.top <= chatBodyHeight;
+      let bottomVisible = coords.bottom <= chatBodyHeight && coords.bottom > 0;
 
       return topVisible || bottomVisible;
     },
-    messageReading (){
+    async messageReading (){
+      const uri = this.$route.params.uri
+      const api = 'http://localhost:8000/api/chats/' + uri + '/messages/'
       console.log('--------------------новое чтение-------------------')
       for (let message of this.$el.querySelectorAll('.anothermessage')) {
         if (this.isReading(message)) {
-          console.log(message.getAttribute('id').replace(/[^\d]/g, ''))
-          message.classList.remove('anothermessage') 
+          const id = Number(message.getAttribute('id').replace(/[^\d]/g, ''))
+
+          console.log(id)
+          
+          for(let i=0; i< this.messages.length; i++){
+            if(this.messages[i].id === id){
+              message.classList.remove('anothermessage') 
+              const response = await axios({
+                method: 'patch',
+                url: api,
+                data: {
+                  username: this.username,
+                  message: this.messages[i]
+                  }
+              })
+              console.log(response.data)
+            }
+            else{
+              continue
+            }
+          }
           console.log('прочитано')
         }
       } 
+    },
+    isAnotherMessage(readers){
+        for(let i=0;i<readers.length;i++){
+
+          if(readers[i].reader.username === this.username){
+            return true
+          }
+          
+        }
+        return false
     }
   }
 }
@@ -317,6 +357,7 @@ p{
 .arrow{
   width: 100%;
 }
+
 .members-header{
   border-radius: 0 calc(.25rem - 1px) 0 0;
 }
@@ -333,10 +374,11 @@ p{
   margin-top: 15px;
 }
 
-.chat-body {
+
+#chat-body {
   height: 100%;
   overflow-y: auto;
-  max-height: 440px;
+  max-height: 448px;
 
 }
 .card-footer {
@@ -349,13 +391,22 @@ p{
   padding: 10px;
   background-color: #fff;
   font-size: 14px;
+  -webkit-transition: all 0.5s ease-in-out;
+  -moz-transition: all 0.5s ease-in-out;
+  -ms-transition: all 0.5s ease-in-out;
+  -o-transition: all 0.5s ease-in-out;
+  transition: all 0.5s ease-in-out;
 }
 
 .subtle-blue-gradient {
   background-color: rgb(84, 186, 237);
 }
+.anothermessage{
+  background-color: rgba(0, 0, 0, 0.2);
+}
 .chat-section {
-  margin-top: 15px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .send-section {
@@ -427,5 +478,8 @@ input[type=text]:focus, input[type=password]:focus {
 
 input[type=text]:placeholder {
   color: #cccccc;
+}
+* {
+  box-sizing: border-box;
 }
 </style>
