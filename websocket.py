@@ -34,7 +34,7 @@ def application(env, start_response):
         print('PING/PONG...')
         try:
             uwsgi.websocket_recv_nb()
-            connection.add_timeout(30, keepalive)
+            connection.call_later(30, keepalive)
         except OSError as error:
             connection.close()
             print(error)
