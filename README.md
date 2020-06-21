@@ -23,4 +23,4 @@ You can start with:
 ```sh
 $ uwsgi --http :8081 --gevent 50 --module websocket --gevent-monkey-patch --master
 ```
-This starts uwsgi with 50 gevent threads. You can configuration it, if you need.
+This starts uwsgi with 50 gevent threads. You can configurate it, if you need.
